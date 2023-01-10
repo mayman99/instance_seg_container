@@ -1,0 +1,9 @@
+opencv-python
+numpy
+flask
+pillow
+gunicorn
+requests==2.22.0
+git+https://github.com/facebookresearch/detectron2.git
+
+
