@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
 # use an older system (18.04) to avoid opencv incompatibility (issue#3524)
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -14,7 +14,7 @@ USER appuser
 WORKDIR /home/appuser
 
 ENV PATH="/home/appuser/.local/bin:${PATH}"
-RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
+RUN wget https://bootstrap.pypa.io/get-pip.py && \
 	python3 get-pip.py --user && \
 	rm get-pip.py
 
@@ -35,6 +35,11 @@ ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
 
 RUN pip install --user -e detectron2_repo
 
+# add dir
+COPY requirements.txt /home/appuser/detectron2_repo
+RUN pip install --user -r /home/appuser/detectron2_repo/requirements.txt
+RUN pip install --user 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
 WORKDIR /home/appuser/detectron2_repo
@@ -49,11 +54,14 @@ ENV PILLOW_VERSION=7.0.0
 
 # add dir
 COPY . /home/appuser/detectron2_repo
+COPY key.pem /home/appuser/detectron2_repo
+COPY cert.pem /home/appuser/detectron2_repo
 
 # Make port 8080 available to the world outside the container
 ENV PORT 8080
 EXPOSE 8080
 
 # CMD python app.py
-CMD ["python3", "app.py"] 
+CMD ["python3", "app.py"]
+# CMD ["waitress-serve", "--host", "127.0.0.1", "hello:app"]
 

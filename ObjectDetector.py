@@ -10,6 +10,9 @@ from detectron2.modeling import build_model
 import torch
 import numpy as np
 from PIL import Image
+from functools import reduce 
+import logging
+from sys import stdout
 
 class Detector:
 
@@ -72,10 +75,55 @@ class Detector:
 		# get image 
 		img = Image.fromarray(np.uint8(v.get_image()[:, :, ::-1]))
 
+		all_cnts = np.zeros_like(outputs["instances"].pred_masks)
+
+		# all_cnts = np.expand_dims(all_cnts, axis=0)
+		# # get contours for each mask
+		all_cnts = []
+		for idx, mask in enumerate(outputs["instances"].pred_masks):
+			mask_img = mask.cpu().numpy()
+			mask_img = mask_img.astype('uint8')
+			cnts = cv.findContours(mask_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+			all_cnts.append(cnts[0][0].tolist())
+
 		# write to jpg
 		# cv.imwrite('img.jpg',v.get_image())
 
-		return img
+		return img, all_cnts
 
+	# detectron model
+	# adapted from detectron2 colab notebook: https://colab.research.google.com/drive/16jcaJoc6bCFAQ96jDe2HwtXj7BMD_-m5	
+	def inference_im(self, im):
+
+		predictor = DefaultPredictor(self.cfg)
+		outputs = predictor(im)
+
+		# with open(self.curr_dir+'/data.txt', 'w') as fp:
+		# 	json.dump(outputs['instances'], fp)
+		# 	# json.dump(cfg.dump(), fp)
+
+		# get metadata
+		metadata = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
+
+		# visualise
+		v = Visualizer(im[:, :, ::-1], metadata=metadata, scale=1.2)
+		v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+		# get image 
+		img = Image.fromarray(np.uint8(v.get_image()[:, :, ::-1]))
+
+		all_cnts = np.zeros_like(outputs["instances"].pred_masks)
+		# all_cnts = np.expand_dims(all_cnts, axis=0)
+		# # get contours for each mask
+		# for idx, mask in enumerate(outputs["instances"].pred_masks):
+		# 	mask_img = mask.cpu().numpy()
+		# 	mask_img = mask_img.astype('uint8')
+		# 	cnts = cv.findContours(mask_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+		# 	all_cnts[idx] = cnts
+
+		# write to jpg
+		# cv.imwrite('img.jpg',v.get_image())
+
+		return img, all_cnts
 
 
