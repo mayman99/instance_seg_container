@@ -69,8 +69,9 @@ class Detector:
 		metadata = MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
 
 		# visualise
-		v = Visualizer(im[:, :, ::-1], metadata=metadata, scale=1.2)
-		v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+		v = Visualizer(im[:, :, ::-1], metadata=metadata, scale=1.0, instance_mode=ColorMode.SEGMENTATION)
+		v = v.overlay_instances(masks=outputs["instances"].pred_masks.to("cpu"))
+		# v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
 		# get image 
 		img = Image.fromarray(np.uint8(v.get_image()[:, :, ::-1]))

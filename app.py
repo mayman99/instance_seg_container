@@ -94,8 +94,8 @@ def upload():
 			file = Image.open(io.BytesIO(base64.b64decode(imagebase64)))
 			# remove alpha channel
 			rgb_im = file.convert('RGB')
+			rgb_im = rgb_im.resize((640, 480))
 			rgb_im.save('file.jpg')
-
 
 		# failure
 		except:
@@ -108,30 +108,21 @@ def upload():
 	else:
 		return render_template("failure.html")
 
-	# create file-object in memory
 	file_object = io.BytesIO()
-
-	# write PNG in file-object
 	result_img.save(file_object, 'PNG')
-
-	# move to beginning of file so `send_file()` it will read from start    
 	file_object.seek(0)
-
 	a = base64.b64encode(file_object.read())
 	a = a.decode('utf-8')
-	# print(a)
 
-	# assume bytes_io is a `BytesIO` object
-	# byte_str = file_object.read()
+	file_object_b = io.BytesIO()
+	rgb_im.save(file_object_b, 'PNG')
+	file_object_b.seek(0)
+	b = base64.b64encode(file_object_b.read())
+	b = b.decode('utf-8')
 
-	# Convert to a "unicode" object
-	# text_obj = byte_str.decode('UTF-8')  # Or use the encoding you expect
-	# print(text_obj)
-	# print(cnts_data)
-	# cnts_data = np.concatenate(cnts_data, axis=0)
-	# print(cnts_data.shape)
 	data = {
 		"image": a,
+		"resized": b,
 		"cnts": cnts_data
 	}
 
@@ -149,6 +140,7 @@ if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 8080))
 
 	# run app
-	app.run(host='0.0.0.0', port=port,ssl_context=("cert.pem", "key.pem"))
+	# app.run(host='0.0.0.0', port=port, ssl_context=("cert.pem", "key.pem"))
+	app.run(host='0.0.0.0', port=port)
 
 
