@@ -1,9 +1,10 @@
 
 # adapted from: https://github.com/npatta01/web-deep-learning-classifier/blob/master/docs/2_b_gcloud.md
 
+PROJECT_ID=intense-context-374107
 GCP_PROJECT=balmy-outcome-273800
 APP_NAME=neelsmlapp
-REGION="us-central1"
+REGION="us-west4"
 MEMORY=2G
 
 # set project to correct one
